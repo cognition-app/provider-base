@@ -1,7 +1,7 @@
 import { AbstractGetOptions, AbstractIterator, AbstractLevelDOWN, AbstractOpenOptions, AbstractOptions, ErrorCallback, ErrorKeyValueCallback } from 'abstract-leveldown';
 import * as ltgt from 'ltgt';
 import { Buffer } from 'safe-buffer';
-import { BaseIterator, BaseProvider, BaseProviderInstance } from './provider';
+import { BaseProvider, BaseProviderInstance } from './provider';
 import { KeyVal, MaybeString, MaybeBuffer, MaybeNull, StringOrBuffer } from './types';
 
 enum LevelOpType {
@@ -29,12 +29,11 @@ export function ProviderToLevelDOWN<
   class BaseLevelDOWNIterator<K extends StringOrBuffer, V> extends AbstractIterator<K, V> {
     // Based on https://github.com/Level/memdown/blob/master/memdown.js
 
-    _iterator: BaseIterator<K, V>
+    _iterator: Iterator<KeyVal<K, Promise<V>>>
     _limit: number
     _reverse: boolean
     _options: AbstractIteratorOptions
     _done: number
-    _incr: (it: BaseIterator<K, V>) => Promise<KeyVal<K, V>>
     _lowerBound: K
     _upperBound: K
     keyAsBuffer: boolean
@@ -57,16 +56,22 @@ export function ProviderToLevelDOWN<
       this._done = 0
 
       if (!this._reverse) {
-        this._incr = (it: BaseIterator<K, V>) => it.next()
         this._lowerBound = ltgt.lowerBound(options)
         this._upperBound = ltgt.upperBound(options)
 
+        if(Buffer.isBuffer(this._lowerBound)) {
+          this._lowerBound = (<Buffer>this._lowerBound).toString() as K
+        }
+        if (Buffer.isBuffer(this._upperBound)) {
+          this._upperBound = (<Buffer>this._upperBound).toString() as K
+        }
+
         if (typeof this._lowerBound === 'undefined') {
-          this._iterator = tree.begin()
+          this._iterator = tree.forward()
         } else if (ltgt.lowerBoundInclusive(options)) {
-          this._iterator = tree.ge(this._lowerBound)
+          this._iterator = tree.forward({ge: this._lowerBound})
         } else {
-          this._iterator = tree.gt(this._lowerBound)
+          this._iterator = tree.forward({gt: this._lowerBound})
         }
 
         if (this._upperBound) {
@@ -77,16 +82,22 @@ export function ProviderToLevelDOWN<
           }
         }
       } else {
-        this._incr = (it: BaseIterator<K, V>) => it.prev()
         this._lowerBound = ltgt.upperBound(options)
         this._upperBound = ltgt.lowerBound(options)
 
+        if (Buffer.isBuffer(this._lowerBound)) {
+          this._lowerBound = (<Buffer>this._lowerBound).toString() as K
+        }
+        if (Buffer.isBuffer(this._upperBound)) {
+          this._upperBound = (<Buffer>this._upperBound).toString() as K
+        }
+
         if (typeof this._lowerBound === 'undefined') {
-          this._iterator = tree.end()
+          this._iterator = tree.reverse()
         } else if (ltgt.upperBoundInclusive(options)) {
-          this._iterator = tree.le(this._lowerBound)
+          this._iterator = tree.reverse({le: this._lowerBound})
         } else {
-          this._iterator = tree.lt(this._lowerBound)
+          this._iterator = tree.reverse({lt: this._lowerBound})
         }
 
         if (this._upperBound) {
@@ -99,17 +110,21 @@ export function ProviderToLevelDOWN<
       }
     }
 
-    _next(callback: ErrorKeyValueCallback<K, V>): void {
+    async _next(callback: ErrorKeyValueCallback<K, V>): Promise<void> {
       if (this._done++ >= this._limit)
         return process.nextTick(callback)
-      if (this._iterator.done())
-        return process.nextTick(callback)
 
-      this._incr(this._iterator).then((kv: MaybeNull<KeyVal<K, V>>) => {
-        if(kv === undefined) {
+      try {
+        const kv = this._iterator.next()
+
+        if (kv.done)
           return process.nextTick(callback)
+
+        if (kv.value === undefined) {
+            return process.nextTick(callback)
         } else {
-          let { key, value }: { key: MaybeBuffer<K>, value: MaybeBuffer<V>} = kv
+          let { key, value }: { key: MaybeBuffer<K>, value: Promise<MaybeBuffer<V>>} = kv.value
+          let resolved_value: MaybeBuffer<V> = await value
 
           if(!this._test(key))
             return process.nextTick(callback)
@@ -118,13 +133,13 @@ export function ProviderToLevelDOWN<
             key = Buffer.from(key.toString()) as MaybeBuffer<K>
 
           if(this.valueAsBuffer && !Buffer.isBuffer(value))
-            value = Buffer.from(value.toString()) as MaybeBuffer<V>
+            resolved_value = Buffer.from(<any>resolved_value)
 
-          return process.nextTick(callback, null, key, value)
+          return process.nextTick(callback, null, key, resolved_value)
         }
-      }).catch((error) => {
+      } catch(error) {
         return process.nextTick(callback, error)
-      })
+      }
     }
 
     _test(k: K): boolean {

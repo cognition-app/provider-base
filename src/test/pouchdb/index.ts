@@ -1,5 +1,4 @@
 import { strict as assert } from 'assert';
-import * as PouchDB from 'pouchdb-browser';
 import { reversePromise } from '../../util/reverse-promise';
 
 export function PouchDBTestSuite<T extends any>(
@@ -10,11 +9,11 @@ export function PouchDBTestSuite<T extends any>(
     return PouchDBFactory()
   }
 
-  async function withStore() {
-    const db = await withEmptyStore()
-    await db.put('a', 'b')
-    return db
-  }
+  // async function withStore() {
+  //   const db = await withEmptyStore()
+  //   await db.put('a', 'b')
+  //   return db
+  // }
 
   describe(desc, () => {
     it('can put/get/remove', async () => {

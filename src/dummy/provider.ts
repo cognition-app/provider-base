@@ -9,8 +9,8 @@ class DummyProviderInstance implements BaseProviderInstance<
   }
   _keys: string[]
 
-  constructor(opts: undefined) {
-    this._store = {}
+  constructor(opts: {store: {[k: string]: object}}) {
+    this._store = opts.store || {}
     this._keys = []
   }
 
@@ -99,4 +99,4 @@ class DummyProviderInstance implements BaseProviderInstance<
   // }
 }
 
-export const DummyProvider = DummyProviderInstance as BaseProvider<string, object, undefined>
+export const DummyProvider = DummyProviderInstance as BaseProvider<string, object, {store?: {[k: string]: object}} | undefined>

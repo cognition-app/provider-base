@@ -1,5 +1,5 @@
-import { BaseProvider, BaseProviderInstance } from '../base/provider'
-import { MaybeId, KeyVal } from '../base/types'
+import { BaseProvider, BaseProviderInstance } from '../provider'
+import { MaybeId, KeyVal } from '../types'
 
 class DummyProviderInstance implements BaseProviderInstance<
   string, object

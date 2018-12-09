@@ -1,4 +1,4 @@
-import { ProviderToLevelDOWN } from '../base/leveldown';
+import { ProviderToLevelDOWN } from '../leveldown';
 import { LevelDOWNTestSuite } from '../test/leveldown';
 import { DummyProvider } from './provider';
 

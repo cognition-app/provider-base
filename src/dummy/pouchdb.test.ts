@@ -1,4 +1,4 @@
-import { ProviderToPouchDB } from '../base/pouchdb';
+import { ProviderToPouchDB } from '../pouchdb';
 import { PouchDBTestSuite } from '../test/pouchdb';
 import { DummyProvider } from './provider';
 

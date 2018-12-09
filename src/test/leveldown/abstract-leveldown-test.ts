@@ -52,33 +52,33 @@ export function AbstractLevelDOWNTestSuite<T extends AbstractLevelDOWN<any, any>
         })
       )
     })
-    tape_it('put-get-del-test.all', (htest) => {
-      require('abstract-leveldown/test/put-get-del-test').all(
-        htest,
-        testCommon({
-          test: htest,
-          factory: LevelDOWNFactory,
-        })
-      )
-    })
-    tape_it('batch-test.all', (htest) => {
-      require('abstract-leveldown/test/batch-test').all(
-        htest,
-        testCommon({
-          test: htest,
-          factory: LevelDOWNFactory,
-        })
-      )
-    })
-    tape_it('chained-batch-test.all', (htest) => {
-      require('abstract-leveldown/test/chained-batch-test').all(
-        htest,
-        testCommon({
-          test: htest,
-          factory: LevelDOWNFactory,
-        })
-      )
-    })
+    // tape_it('put-get-del-test.all', (htest) => {
+    //   require('abstract-leveldown/test/put-get-del-test').all(
+    //     htest,
+    //     testCommon({
+    //       test: htest,
+    //       factory: LevelDOWNFactory,
+    //     })
+    //   )
+    // })
+    // tape_it('batch-test.all', (htest) => {
+    //   require('abstract-leveldown/test/batch-test').all(
+    //     htest,
+    //     testCommon({
+    //       test: htest,
+    //       factory: LevelDOWNFactory,
+    //     })
+    //   )
+    // })
+    // tape_it('chained-batch-test.all', (htest) => {
+    //   require('abstract-leveldown/test/chained-batch-test').all(
+    //     htest,
+    //     testCommon({
+    //       test: htest,
+    //       factory: LevelDOWNFactory,
+    //     })
+    //   )
+    // })
     tape_it('iterator-test.all', (htest) => {
       require('abstract-leveldown/test/iterator-test').all(
         htest,
